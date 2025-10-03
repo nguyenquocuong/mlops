@@ -1,5 +1,14 @@
+resource "aws_default_vpc" "default" {}
+
+data "aws_subnets" "default_vpc_subnets" {
+  filter {
+    name   = "vpc-id"
+    values = [aws_default_vpc.default.id]
+  }
+}
+
 resource "aws_iam_role" "sagemaker_execution_role" {
-  name = "sm-notebook-instance-role"
+  name = "sagemaker-domain-execution-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,9 +24,20 @@ resource "aws_iam_role" "sagemaker_execution_role" {
   })
 }
 
-resource "aws_sagemaker_notebook_instance" "customer_churn" {
-  name     = "customer-churn"
-  role_arn = aws_iam_role.sagemaker_execution_role.arn
+resource "aws_iam_role_policy_attachment" "sagemaker_managed_attach" {
+  for_each   = toset(["AmazonSageMakerFullAccess"])
+  role       = aws_iam_role.sagemaker_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/${each.value}"
+}
 
-  instance_type = "ml.t2.medium"
+resource "aws_sagemaker_domain" "this" {
+  domain_name = "customer-churn"
+  auth_mode   = "IAM"
+
+  vpc_id     = aws_default_vpc.default.id
+  subnet_ids = data.aws_subnets.default_vpc_subnets.ids
+
+  default_user_settings {
+    execution_role = aws_iam_role.sagemaker_execution_role.arn
+  }
 }
