@@ -5,5 +5,5 @@ variable "region" {
 
 variable "app_name" {
   type    = string
-  default = "telco-customer-churn"
+  default = "mla-telco-customer-churn"
 }

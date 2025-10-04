@@ -1,10 +1,14 @@
 locals {
-  datasets_path = "../datasets"
+  dataset_path  = "../datasets"
+  notebook_path = "../notebooks"
 
-  filenames = fileset(local.datasets_path, "**")
+  dataset_filesets  = fileset(local.dataset_path, "**")
+  notebook_filesets = fileset(local.notebook_path, "**")
 
-  bucket_name = "${random_string.prefix.id}-${var.app_name}"
+  bucket_name = var.app_name
+}
 
+locals {
   sagemaker = {
     jupyter_image_tag = "sagemaker-distribution-cpu"
 
@@ -67,4 +71,3 @@ locals {
   sagemaker_distribution_image_arn_prefix = lookup(local.sagemaker.distribution_image_arn_prefixes, data.aws_region.current.region, "us-east-1")
   sagemaker_distribution_image_arn        = "${local.sagemaker_distribution_image_arn_prefix}/${local.sagemaker.jupyter_image_tag}"
 }
-

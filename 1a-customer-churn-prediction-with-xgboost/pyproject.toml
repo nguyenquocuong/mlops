@@ -1,0 +1,18 @@
+[project]
+name = "1a-customer-churn-prediction-with-xgboost"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "boto3>=1.40.45",
+    "jupyter>=1.1.1",
+    "jupyterlab>=4.4.9",
+    "matplotlib>=3.10.6",
+    "numpy>=2.3.3",
+    "pandas>=2.3.3",
+    "seaborn>=0.13.2",
+]

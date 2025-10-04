@@ -25,9 +25,25 @@ resource "aws_iam_role" "sagemaker_execution_role" {
 }
 
 resource "aws_iam_role_policy_attachment" "sagemaker_managed_attach" {
-  for_each   = toset(["AmazonSageMakerFullAccess"])
+  for_each   = toset(["AmazonSageMakerFullAccess", "AmazonS3FullAccess"])
   role       = aws_iam_role.sagemaker_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/${each.value}"
+}
+
+resource "aws_sagemaker_studio_lifecycle_config" "jupyterlab_notebook_setup" {
+  studio_lifecycle_config_app_type = "JupyterLab"
+  studio_lifecycle_config_name     = "jupyterlab-notebook-setup"
+  studio_lifecycle_config_content = base64encode(<<-EOT
+  #!/bin/bash
+  set -eux
+
+  S3_BUCKET="${local.bucket_name}"
+  S3_KEY="notebooks/churn-prediction-xgboost.ipynb"
+  TARGET_PATH="/home/sagemaker-user/churn-prediction-xgboost.ipynb"
+
+  aws s3 cp s3://$${S3_BUCKET}/$${S3_KEY} $${TARGET_PATH}
+  EOT
+  )
 }
 
 resource "aws_sagemaker_domain" "this" {
@@ -37,8 +53,13 @@ resource "aws_sagemaker_domain" "this" {
   vpc_id     = aws_default_vpc.default.id
   subnet_ids = data.aws_subnets.default_vpc_subnets.ids
 
+
   default_user_settings {
     execution_role = aws_iam_role.sagemaker_execution_role.arn
+
+    jupyter_lab_app_settings {
+      lifecycle_config_arns = [aws_sagemaker_studio_lifecycle_config.jupyterlab_notebook_setup.arn]
+    }
   }
 }
 
@@ -69,7 +90,7 @@ resource "aws_sagemaker_space" "this" {
     jupyter_lab_app_settings {
       default_resource_spec {
         instance_type       = "ml.t3.medium"
-        sagemaker_image_arn = local.sagemaker_image_arn
+        sagemaker_image_arn = local.sagemaker_distribution_image_arn
       }
     }
   }
@@ -84,7 +105,10 @@ resource "aws_sagemaker_app" "this" {
   app_name = "default"
 
   resource_spec {
-    instance_type       = "ml.t3.medium"
-    sagemaker_image_arn = local.sagemaker_image_arn
+    instance_type        = "ml.t3.medium"
+    sagemaker_image_arn  = local.sagemaker_distribution_image_arn
+    lifecycle_config_arn = aws_sagemaker_studio_lifecycle_config.jupyterlab_notebook_setup.arn
   }
+
+  depends_on = [aws_sagemaker_studio_lifecycle_config.jupyterlab_notebook_setup]
 }
