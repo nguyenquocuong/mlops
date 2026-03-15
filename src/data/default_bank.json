@@ -1,0 +1,30 @@
+{
+  "id": "builtin-c01",
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "q1",
+      "prompt": "Which AWS machine learning service is best suited for adding real-time personalized recommendations to an application?",
+      "choices": [
+        "Amazon SageMaker",
+        "Amazon Personalize",
+        "Amazon Comprehend",
+        "Amazon Rekognition"
+      ],
+      "correct_answer_indices": [1],
+      "explanation": "Amazon Personalize allows developers to quickly build and deploy curated recommendations and intelligent user personalization at scale."
+    },
+    {
+      "id": "q2",
+      "prompt": "You are training a model on Amazon SageMaker and need to optimize the hyperparameters. Which SageMaker feature automates this?",
+      "choices": [
+        "SageMaker Autopilot",
+        "SageMaker Automatic Model Tuning",
+        "SageMaker Clarify",
+        "SageMaker Data Wrangler"
+      ],
+      "correct_answer_indices": [1],
+      "explanation": "SageMaker Automatic Model Tuning (also known as hyperparameter tuning) finds the best version of a model by running many training jobs on your dataset."
+    }
+  ]
+}
