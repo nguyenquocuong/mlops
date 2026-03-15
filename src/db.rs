@@ -37,6 +37,13 @@ impl Db {
             [],
         )?;
 
+        // Graceful ALTER TABLE to add domain_stats if it doesn't exist
+        // Doing this via PRAGMA or just catching the error
+        let _ = self.conn.execute(
+            "ALTER TABLE session_history ADD COLUMN domain_stats TEXT DEFAULT '{}'",
+            [],
+        );
+
         Ok(())
     }
 
@@ -59,23 +66,27 @@ impl Db {
             crate::models::SessionType::Exam => "Exam",
         };
 
+        let stats_json =
+            serde_json::to_string(&session.domain_stats).unwrap_or_else(|_| "{}".to_string());
+
         self.conn.execute(
-            "INSERT INTO session_history (id, mode, score_percentage, passed, total_questions, correct_answers)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+            "INSERT INTO session_history (id, mode, score_percentage, passed, total_questions, correct_answers, domain_stats)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
             rusqlite::params![
                 session.id.to_string(),
                 mode_str,
                 pct,
                 passed,
                 session.questions.len() as i32,
-                correct as i32
+                correct as i32,
+                stats_json
             ],
         )?;
         Ok(())
     }
 
     pub fn get_history(&self) -> Result<Vec<String>> {
-        let mut stmt = self.conn.prepare("SELECT session_date, mode, score_percentage, passed, total_questions, correct_answers FROM session_history ORDER BY session_date DESC")?;
+        let mut stmt = self.conn.prepare("SELECT session_date, mode, score_percentage, passed, total_questions, correct_answers, domain_stats FROM session_history ORDER BY session_date DESC")?;
 
         let rows = stmt.query_map([], |row| {
             let date: String = row.get(0)?;
@@ -84,12 +95,38 @@ impl Db {
             let passed: bool = row.get(3)?;
             let total: i32 = row.get(4)?;
             let correct: i32 = row.get(5)?;
+            let domain_stats_str: Option<String> = row.get(6).unwrap_or(None);
 
             let passed_str = if passed { "PASS" } else { "FAIL" };
-            Ok(format!(
+
+            let mut base_str = format!(
                 "{} - Mode: {} - Score: {:.1}% ({}/{}) - [{}]",
                 date, mode, score, correct, total, passed_str
-            ))
+            );
+
+            if let Some(json_str) = domain_stats_str {
+                if let Ok(stats) = serde_json::from_str::<
+                    std::collections::HashMap<u8, crate::models::DomainStat>,
+                >(&json_str)
+                {
+                    if !stats.is_empty() {
+                        let mut dom_str = String::new();
+                        for i in 1..=4 {
+                            if let Some(stat) = stats.get(&i) {
+                                if stat.total > 0 {
+                                    let dom_pct = (stat.correct as f64 / stat.total as f64) * 100.0;
+                                    dom_str.push_str(&format!(" | D{}: {:.0}%", i, dom_pct));
+                                }
+                            }
+                        }
+                        if !dom_str.is_empty() {
+                            base_str.push_str(&dom_str);
+                        }
+                    }
+                }
+            }
+
+            Ok(base_str)
         })?;
 
         let mut out = Vec::new();

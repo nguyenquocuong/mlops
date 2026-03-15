@@ -35,6 +35,19 @@ pub fn draw(f: &mut Frame, app: &mut App) {
                 Span::styled(result_str, Style::default().fg(color)),
             ]));
             text.push(Line::from(""));
+            text.push(Line::from("Domain Breakdown:"));
+            for i in 1..=4 {
+                if let Some(stat) = session.domain_stats.get(&i) {
+                    if stat.total > 0 {
+                        let dom_pct = (stat.correct as f64 / stat.total as f64) * 100.0;
+                        text.push(Line::from(format!(
+                            " - Domain {}: {:.1}% ({}/{})",
+                            i, dom_pct, stat.correct, stat.total
+                        )));
+                    }
+                }
+            }
+            text.push(Line::from(""));
             text.push(Line::from("Press 'q' or 'm' to return to Main Menu."));
 
             let block = Block::default()

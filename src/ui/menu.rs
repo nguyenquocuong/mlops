@@ -21,6 +21,8 @@ pub fn draw(f: &mut Frame, app: &mut App) {
 
     if app.show_resume_prompt {
         text = "Found an active uncompleted session!\n\nPress 'r' to Resume\nPress 'c' to Clear and start over\nPress 'q' to quit.".to_string();
+    } else if app.show_domain_prompt {
+        text = "Practice Mode - Select Domain\n\n0. All Domains\n1. Domain 1: Data Preparation\n2. Domain 2: ML Model Development\n3. Domain 3: Deployment and Orchestration\n4. Domain 4: Monitoring, Maintenance, Security\n\nPress 'b' to go back.".to_string();
     }
 
     let paragraph = Paragraph::new(text).block(block);

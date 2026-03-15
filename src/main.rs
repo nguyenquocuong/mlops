@@ -151,13 +151,64 @@ where
                             } else if key.code == KeyCode::Char('q') {
                                 app.quit();
                             }
+                        } else if app.show_domain_prompt {
+                            if key.code == KeyCode::Char('0') {
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Practice,
+                                    65,
+                                    None,
+                                );
+                                app.show_domain_prompt = false;
+                            } else if key.code == KeyCode::Char('1') {
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Practice,
+                                    65,
+                                    Some(1),
+                                );
+                                app.show_domain_prompt = false;
+                            } else if key.code == KeyCode::Char('2') {
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Practice,
+                                    65,
+                                    Some(2),
+                                );
+                                app.show_domain_prompt = false;
+                            } else if key.code == KeyCode::Char('3') {
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Practice,
+                                    65,
+                                    Some(3),
+                                );
+                                app.show_domain_prompt = false;
+                            } else if key.code == KeyCode::Char('4') {
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Practice,
+                                    65,
+                                    Some(4),
+                                );
+                                app.show_domain_prompt = false;
+                            } else if key.code == KeyCode::Char('b')
+                                || key.code == KeyCode::Char('q')
+                            {
+                                app.show_domain_prompt = false;
+                            }
                         } else {
                             if key.code == KeyCode::Char('q') {
                                 app.quit();
                             } else if key.code == KeyCode::Char('1') {
-                                app.start_session(bank, mla_c01::models::SessionType::Practice, 65);
+                                app.show_domain_prompt = true;
                             } else if key.code == KeyCode::Char('2') {
-                                app.start_session(bank, mla_c01::models::SessionType::Exam, 65);
+                                app.start_session(
+                                    bank,
+                                    mla_c01::models::SessionType::Exam,
+                                    65,
+                                    None,
+                                );
                             } else if key.code == KeyCode::Char('3') {
                                 app.mode = AppMode::History;
                             }

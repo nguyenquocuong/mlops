@@ -12,6 +12,7 @@ pub struct QuestionBank {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Question {
     pub id: String,
+    pub domain: u8,
     pub prompt: String,
     pub choices: Vec<String>,
     pub correct_answer_indices: Vec<u8>,
@@ -25,6 +26,12 @@ pub enum SessionType {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DomainStat {
+    pub correct: u16,
+    pub total: u16,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestSession {
     pub id: Uuid,
     pub mode: SessionType,
@@ -35,6 +42,7 @@ pub struct TestSession {
     pub is_completed: bool,
     pub score_percentage: Option<f64>,
     pub passed: Option<bool>,
+    pub domain_stats: HashMap<u8, DomainStat>,
 }
 
 impl QuestionBank {
@@ -55,6 +63,7 @@ mod tests {
             "questions": [
                 {
                     "id": "q1",
+                    "domain": 1,
                     "prompt": "Test?",
                     "choices": ["A", "B"],
                     "correct_answer_indices": [0],

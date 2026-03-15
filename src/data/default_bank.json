@@ -4,6 +4,7 @@
   "questions": [
     {
       "id": "q1",
+      "domain": 1,
       "prompt": "Which AWS machine learning service is best suited for adding real-time personalized recommendations to an application?",
       "choices": [
         "Amazon SageMaker",
@@ -16,6 +17,7 @@
     },
     {
       "id": "q2",
+      "domain": 2,
       "prompt": "You are training a model on Amazon SageMaker and need to optimize the hyperparameters. Which SageMaker feature automates this?",
       "choices": [
         "SageMaker Autopilot",
