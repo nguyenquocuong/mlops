@@ -1,0 +1,39 @@
+FROM python:3.12-slim
+
+# System deps needed by some Python packages (e.g. numpy, matplotlib)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+        git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js (required by JupyterLab extensions)
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user matching the standard Jupyter convention
+RUN useradd -m -s /bin/bash jovyan
+WORKDIR /home/jovyan/work
+
+# Install uv for fast dependency installation
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
+
+# Install project dependencies via uv into the system Python
+COPY pyproject.toml uv.lock ./
+RUN uv pip install --system -r pyproject.toml
+
+# Install JupyterLab + LSP + autocompletion stack
+RUN uv pip install --system \
+    jupyterlab \
+    jupyterlab-lsp \
+    "python-lsp-server[all]" \
+    jupyter-ai \
+    ipywidgets
+
+# Install JupyterLab extension for LSP (pre-built, no build step needed for >=4.x)
+RUN jupyter labextension list
+
+USER jovyan
+
+EXPOSE 8888
